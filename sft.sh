@@ -1,13 +1,15 @@
 #!/bin/bash
 
 # 创建日志目录
-LOG_DIR="logs"
+LOG_DIR="../logs"
 mkdir -p $LOG_DIR
 
 # 获取当前时间戳
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 LOG_FILE="$LOG_DIR/internlm2.5-1.8b_lora_sft_${TIMESTAMP}.log"
-data_path=$1
+data_path=../extra_standard.jsonl
+val_data_path=../base_standard.jsonl
+echo "=== DATA_PATH: $data_path ==="
 
 # 设置CUDA设备
 export NPROC_PER_NODE=1
@@ -15,16 +17,17 @@ export OMP_NUM_THREADS=1
 export CUDA_VISIBLE_DEVICES=0
 
 nohup swift sft \
-    --model /root/public-model/models/Shanghai_AI_Laboratory/internlm2_5-1_8b-chat \
+    --model ../internlm2_5-1_8b-chat \
     --train_type lora \
-    --dataset $1 \
-    --torch_dtype bfloat16 \
+    --dataset $data_path \
+    --val_dataset $val_data_path \
     --num_train_epochs 1 \
-    --per_device_train_batch_size 4 \
+    --torch_dtype 'float16' \
+    --per_device_train_batch_size 16 \
     --learning_rate 5e-5 \
     --warmup_ratio 0.1 \
     --split_dataset_ratio 0 \
-    --lora_rank 8 \
+    --lora_rank 16 \
     --lora_alpha 32 \
     --target_modules all-linear \
     --gradient_accumulation_steps 2 \
@@ -32,8 +35,8 @@ nohup swift sft \
     --save_total_limit 5 \
     --gradient_checkpointing_kwargs '{"use_reentrant": false}' \
     --logging_steps 5 \
-    --max_length 2048 \
-    --output_dir ./swift_output/InternLM2.5-1.8B-Lora \
+    --max_length 3000 \
+    --output_dir ../swift_output/InternLM2.5-1.8B-Lora \
     --dataloader_num_workers 256 \
     --model_author JimmyMa99 \
     --model_name InternLM2.5-1.8B-Lora \
