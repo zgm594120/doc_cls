@@ -17,6 +17,6 @@ fi
 swift export \
     --adapters $apapters \
     --merge_lora true \
-    --output_dir $output_dir || {echo "Error during export!"; exit 1; }
+    --output_dir $output_dir
 
 exit 0
